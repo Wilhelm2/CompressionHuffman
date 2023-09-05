@@ -32,6 +32,7 @@ typedef struct s_list {
 typedef struct s_decompressionMetadata {
     data* charactersEncoding;
     unsigned int nbCharacters;
+    unsigned int totalCharacterToDecode;
 } decompressionMetadata;
 
 data* readCharacterOccurrences(char* filename);
@@ -51,6 +52,7 @@ char* concat(const char* S1, const char* S2);
 void writeHuffmannMetadata(unsigned int fd, data* encodedCharacters);
 void writeTextToFile(unsigned int fd_write, unsigned int fd_read, data* encodedCharacters);
 unsigned int countEncodedCharacters(data* encodedCharacters);
+unsigned int countCharactersInFile(data* encodedCharacters);
 void testWrite(unsigned int fd, void* data, unsigned int size);
 int testRead(unsigned int fd, size_t size, void* buffer);
 

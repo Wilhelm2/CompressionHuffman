@@ -76,8 +76,11 @@ void HuffmanCompressFile(char* filename, data* encodedCharacters) {
 // Writes the metadata to fd necessary to decode the file
 void writeHuffmannMetadata(unsigned int fd, data* encodedCharacters) {
     unsigned int nbEncodedCharacters = countEncodedCharacters(encodedCharacters);
+    unsigned int nbCharactersInFile = countCharactersInFile(encodedCharacters);
 
     testWrite(fd, &nbEncodedCharacters, sizeof(unsigned int));
+    testWrite(fd, &nbCharactersInFile, sizeof(unsigned int));
+
     for (unsigned int i = 0; i < 256; i++) {
         if (encodedCharacters[i].occurrences > 0) {  // if the character occurs in input file
             testWrite(fd, &encodedCharacters[i], sizeof(data));
@@ -91,6 +94,16 @@ unsigned int countEncodedCharacters(data* encodedCharacters) {
     for (unsigned int i = 0; i < 256; i++) {
         if (encodedCharacters[i].occurrences > 0)
             total++;
+    }
+    return total;
+}
+
+// Counts the number of characters in the file
+unsigned int countCharactersInFile(data* encodedCharacters) {
+    unsigned int total = 0;
+    for (unsigned int i = 0; i < 256; i++) {
+        if (encodedCharacters[i].occurrences > 0)
+            total += encodedCharacters[i].occurrences;
     }
     return total;
 }

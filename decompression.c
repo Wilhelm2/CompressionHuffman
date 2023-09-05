@@ -9,8 +9,8 @@
 // Reads the metadata from file
 decompressionMetadata readMetadata(unsigned int fd) {
     decompressionMetadata metaData;
-    testRead(fd, sizeof(int), &metaData.nbCharacters);  // Reads the number of encoded characters
-    printf("numbers of encoded characters %d\n", metaData.nbCharacters);
+    testRead(fd, sizeof(unsigned int), &metaData.nbCharacters);            // Reads the number of encoded characters
+    testRead(fd, sizeof(unsigned int), &metaData.totalCharacterToDecode);  // Reads the number of characters to decode
     metaData.charactersEncoding = calloc(metaData.nbCharacters, sizeof(data));
     for (unsigned int i = 0; i < metaData.nbCharacters; i++)  // Reads the metadata of each character
         testRead(fd, sizeof(data), &metaData.charactersEncoding[i]);
@@ -18,7 +18,7 @@ decompressionMetadata readMetadata(unsigned int fd) {
 }
 
 // Reads the compressed text from file, decompresses it and saves it to output file
-void HuffmannDecompressFile(Tree* tree, unsigned int fd_read) {
+void HuffmannDecompressFile(Tree* tree, unsigned int fd_read, decompressionMetadata metadata) {
     unsigned int fd_write;
     unsigned int nbReadCharacters;
     char buffer_read[BUFFER_SIZE], buffer_write[BUFFER_SIZE];
@@ -28,6 +28,8 @@ void HuffmannDecompressFile(Tree* tree, unsigned int fd_read) {
     }
 
     unsigned int pos = 0;
+    unsigned int decodedCharacters = 0;  // Necessary to avoid creating characters from the last byte of the file (whose
+                                         // bits might only be partially valid)
     Tree* findCharTree = tree;  // Characters are decoded by going through the tree till finding the encoded character
     while ((nbReadCharacters = testRead(fd_read, BUFFER_SIZE, buffer_read)) != 0) {
         for (unsigned int i = 0; i < nbReadCharacters; i++) {
@@ -35,6 +37,11 @@ void HuffmannDecompressFile(Tree* tree, unsigned int fd_read) {
                 if (findCharTree->left == NULL && findCharTree->right == NULL) {  // character found
                     buffer_write[pos] = findCharTree->d.character;
                     pos++;
+                    decodedCharacters++;
+                    if (decodedCharacters == metadata.totalCharacterToDecode) {  // Decoded all characters to decode
+                        testWrite(fd_write, buffer_write, pos);
+                        return;
+                    }
                     findCharTree = tree;       // Goes back to root to decode the next character
                     if (pos == BUFFER_SIZE) {  // Write buffer is full
                         testWrite(fd_write, buffer_write, BUFFER_SIZE);
@@ -71,7 +78,7 @@ int main(unsigned int argc, char* argv[]) {
     decompressionMetadata metadata = readMetadata(fd);
     Tree* treeMetaData = buildTree(metadata.charactersEncoding, metadata.nbCharacters);
     printTree(treeMetaData);
-    HuffmannDecompressFile(treeMetaData, fd);
+    HuffmannDecompressFile(treeMetaData, fd, metadata);
 
     freeTree(treeMetaData);
     free(metadata.charactersEncoding);
