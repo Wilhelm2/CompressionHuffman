@@ -1,62 +1,57 @@
+#ifndef COMPRESSION_H
+#define COMPRESSION_H
 
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
-typedef struct s_data 
-{
-    int size ; // size of the letter
-    unsigned char letter; // code of the letter
-    int occ;
+#define BUFFER_SIZE 512
+
+typedef struct s_data {
+    unsigned char character;   // encoded character
+    unsigned int occurrences;  // occurrences of the character in the file
+    unsigned int encoding;     // number representing the compressed character
+    unsigned int usedBits;     // used bits to encode
 } data;
 
-typedef struct s_node
-{
-    int value; // "valeur" pour calculer l'importance
-    data* d; // 
-    struct s_node* first; // fils gauche
-    struct s_node* second; // fils droit
-} node;
-typedef struct s_arbre 
-{
-    data* d;
-    int value;
-    struct s_arbre* left;
-    struct s_arbre* right;
-} arbre;
+typedef struct s_Tree {
+    data d;
+    struct s_Tree* left;
+    struct s_Tree* right;
+} Tree;
 
-typedef struct s_hierarchy
-{
-    node* d;
-    struct s_hierarchy* next;
-} hierarchy;
+typedef struct s_list {
+    struct s_list* next;
+    Tree* elt;
+} list;
 
-typedef struct s_coded_letter
-{
-    unsigned char letter;
-    char * code;
-    int size;
-} coded_letter;
+typedef struct s_decompressionMetadata {
+    data* charactersEncoding;
+    unsigned int nbCharacters;
+} decompressionMetadata;
 
-typedef struct s_decompress_info
-{
-    coded_letter** tab;
-    int nb_letters;
-    int filling_last_byte;
-} decompress_info;
+data* readCharacterOccurrences(char* filename);
+list* transformArrayToSortedList(data* characters, unsigned int arraySize);
+Tree* makeNewTreeElement(data element);
 
-typedef struct s_decompress_tree
-{
-    char letter;
-    struct s_decompress_tree* left;
-    struct s_decompress_tree* right;
-} decompress_tree;
-decompress_tree* add_elt_tree( char * code, char letter, decompress_tree*t);
-void printByte( char c);
+list* makeNewListElement(data characterInfo);
+list* addSortedElement(list* elt, list* head);
 
+Tree* buildTree(data* characters, unsigned int nbCharacters);
+void printSortedList(list* sortedList);
+Tree* concatTree(Tree* left, Tree* right);
+void printTree(Tree* root);
+void freeTree(Tree* t);
 
-data ** count_occ ( data ** tab, int size,unsigned char *buffer);
-arbre * make_arbre ( node * top);
-hierarchy * add_elt( data* d, hierarchy *h);
-hierarchy * add_node (node* n, hierarchy *h);
-coded_letter** recursive_transform( arbre * a, coded_letter** tab, char * code, int size);
-void free_nodes ( node * n);
-char * concat( const char * S1, const char * S2);
-int put_code_letter_to_buffer( unsigned char * buffer, int pos, coded_letter* l, int fd );
+char* concat(const char* S1, const char* S2);
+void writeHuffmannMetadata(unsigned int fd, data* encodedCharacters);
+void writeTextToFile(unsigned int fd_write, unsigned int fd_read, data* encodedCharacters);
+unsigned int countEncodedCharacters(data* encodedCharacters);
+void testWrite(unsigned int fd, void* data, unsigned int size);
+int testRead(unsigned int fd, size_t size, void* buffer);
+
+#endif
