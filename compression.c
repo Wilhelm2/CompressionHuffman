@@ -4,7 +4,7 @@
 data* readCharacterOccurrences(char* filename) {
     unsigned char buffer[BUFFER_SIZE];
     unsigned int size = 0, fd;
-    data* characterOccurrences = malloc(sizeof(data) * 256);
+    data* characterOccurrences = calloc(256, sizeof(data));
     for (unsigned int i = 0; i < 256; i++) {
         characterOccurrences[i].character = i;
         characterOccurrences[i].occurrences = 0;
@@ -157,9 +157,9 @@ int main(int argc, char* argv[]) {
 
     data* characters = readCharacterOccurrences(argv[1]);
     Tree* tree = buildTree(characters, 256);
-    printTree(tree);
+    //    printTree(tree);
     fillEncodingIntoArray(tree, characters, 0, 0);
-    printEncoding(characters);
+    //    printEncoding(characters);
     HuffmanCompressFile(argv[1], characters);
 
     free(characters);

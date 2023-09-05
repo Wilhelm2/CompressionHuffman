@@ -77,7 +77,7 @@ int main(unsigned int argc, char* argv[]) {
 
     decompressionMetadata metadata = readMetadata(fd);
     Tree* treeMetaData = buildTree(metadata.charactersEncoding, metadata.nbCharacters);
-    printTree(treeMetaData);
+    // printTree(treeMetaData);
     HuffmannDecompressFile(treeMetaData, fd, metadata);
 
     freeTree(treeMetaData);
