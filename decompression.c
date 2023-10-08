@@ -6,7 +6,7 @@
 #include <unistd.h>
 #include "compression.h"
 
-// Reads the metadata from file
+// Reads the metadata from file.
 decompressionMetadata readMetadata(unsigned int fd) {
     decompressionMetadata metaData;
     testRead(fd, sizeof(unsigned int), &metaData.nbCharacters);            // Reads the number of encoded characters
@@ -17,7 +17,7 @@ decompressionMetadata readMetadata(unsigned int fd) {
     return metaData;
 }
 
-// Reads the compressed text from file, decompresses it and saves it to output file
+// Reads the compressed text from file, decompresses it and saves it to output file.
 void HuffmannDecompressFile(Tree* tree, unsigned int fd_read, decompressionMetadata metadata) {
     unsigned int fd_write;
     unsigned int nbReadCharacters;
